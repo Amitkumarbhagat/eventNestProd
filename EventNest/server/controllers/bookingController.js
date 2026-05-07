@@ -14,7 +14,7 @@ exports.sendBookingOTP = async (req, res) => {
         if (!emailSent) {
             return res.status(502).json({ message: 'Unable to deliver OTP email. Please try again.' });
         }
-        res.json({ message: 'OTP sent successfully' });
+        res.json({ message: 'OTP sent successfully. Please check your inbox and spam folder. Sometimes it lands in spam.' });
     } catch (error) {
         res.status(500).json({ message: 'Error sending OTP', error: error.message });
     }
