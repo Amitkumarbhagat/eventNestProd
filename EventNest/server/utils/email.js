@@ -1,39 +1,46 @@
-// const nodemailer = require('nodemailer');
-// const dotenv = require('dotenv');
-
-// dotenv.config();
-
-// const transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS
-//     }
-// });
-
-
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
-//const dns = require('dns');
 
 dotenv.config();
-//dns.setDefaultResultOrder('ipv4first');
+
+const smtpPort = Number(process.env.EMAIL_PORT || 587);
+const smtpHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const smtpSecure = process.env.EMAIL_SECURE === 'true' || smtpPort === 465;
 
 const transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    secure: false,
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS
     },
+    connectionTimeout: Number(process.env.EMAIL_CONNECTION_TIMEOUT || 20000),
+    greetingTimeout: Number(process.env.EMAIL_GREETING_TIMEOUT || 20000),
+    socketTimeout: Number(process.env.EMAIL_SOCKET_TIMEOUT || 30000)
 });
 
+const verifyEmailTransport = async () => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn('EMAIL_USER/EMAIL_PASS missing. Email delivery is disabled.');
+        return;
+    }
 
+    try {
+        await transporter.verify();
+        console.log(`SMTP ready (${smtpHost}:${smtpPort})`);
+    } catch (error) {
+        console.error('SMTP verify failed:', error.message);
+    }
+};
 
+verifyEmailTransport();
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            return false;
+        }
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: userEmail,
@@ -46,13 +53,18 @@ const sendBookingEmail = async (userEmail, userName, eventTitle) => {
         };
         await transporter.sendMail(mailOptions);
         console.log('Email sent successfully to', userEmail);
+        return true;
     } catch (error) {
         console.error('Error sending email:', error);
+        return false;
     }
 };
 
 const sendOTPEmail = async (userEmail, otp, type) => {
     try {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            return false;
+        }
         const title = type === 'account_verification' ? 'Verify your EventNest Account' : 'EventNest Booking Verification';
         const msg = type === 'account_verification'
             ? 'Please use the following OTP to verify your new EventNest account.'
@@ -75,8 +87,10 @@ const sendOTPEmail = async (userEmail, otp, type) => {
         };
         await transporter.sendMail(mailOptions);
         console.log(`OTP sent to ${userEmail} for ${type}`);
+        return true;
     } catch (error) {
         console.error('Error sending OTP email:', error);
+        return false;
     }
 };
 
