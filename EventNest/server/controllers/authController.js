@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
         const emailSent = await sendOTPEmail(email, otp, 'account_verification');
 
         const response = {
-            message: 'OTP sent to email. Please verify.',
+            message: 'OTP sent successfully. Please check your inbox and spam folder. Sometimes it lands in spam.',
             email: user.email
         };
         if (!emailSent && process.env.NODE_ENV !== 'production') {
@@ -62,7 +62,11 @@ exports.login = async (req, res) => {
             await OTP.findOneAndDelete({ email: user.email, action: 'account_verification' });
             await OTP.create({ email: user.email, otp, action: 'account_verification' });
             const emailSent = await sendOTPEmail(user.email, otp, 'account_verification');
-            const response = { message: 'Account not verified', needsVerification: true, email: user.email };
+            const response = {
+                message: 'Account not verified. OTP sent successfully. Please check your inbox and spam folder. Sometimes it lands in spam.',
+                needsVerification: true,
+                email: user.email
+            };
             if (!emailSent && process.env.NODE_ENV !== 'production') {
                 response.devOtp = otp;
                 response.message = 'Account not verified. Email failed, use dev OTP fallback.';
