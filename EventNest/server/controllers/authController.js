@@ -38,6 +38,8 @@ exports.register = async (req, res) => {
         if (!emailSent && process.env.NODE_ENV !== 'production') {
             response.devOtp = otp;
             response.message = 'Email not delivered. Using dev OTP fallback.';
+        } else if (!emailSent) {
+            return res.status(502).json({ message: 'Unable to deliver OTP email. Please try again.' });
         }
 
         res.status(201).json(response);
@@ -64,6 +66,8 @@ exports.login = async (req, res) => {
             if (!emailSent && process.env.NODE_ENV !== 'production') {
                 response.devOtp = otp;
                 response.message = 'Account not verified. Email failed, use dev OTP fallback.';
+            } else if (!emailSent) {
+                return res.status(502).json({ message: 'Unable to deliver OTP email. Please try again.' });
             }
             return res.status(403).json(response);
         }
