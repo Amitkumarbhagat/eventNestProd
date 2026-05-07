@@ -2,11 +2,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const dns = require('dns');
 const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
 const bookingRoutes = require('./routes/booking');
 
 dotenv.config();
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 
