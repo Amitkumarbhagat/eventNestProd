@@ -63,6 +63,10 @@ const sendWithBrevoApi = async ({ to, subject, html }) => {
 };
 
 const sendMailWithFallback = async ({ to, subject, html }) => {
+    if (brevoApiKey) {
+        return sendWithBrevoApi({ to, subject, html });
+    }
+
     const canUseSmtp = process.env.EMAIL_USER && process.env.EMAIL_PASS;
 
     if (canUseSmtp) {
@@ -86,11 +90,13 @@ const sendMailWithFallback = async ({ to, subject, html }) => {
 };
 
 const verifyEmailTransport = async () => {
+    if (brevoApiKey) {
+        console.log('BREVO_API_KEY detected. Using Brevo API as primary email channel.');
+        return;
+    }
+
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn('EMAIL_USER/EMAIL_PASS missing. Email delivery is disabled.');
-        if (brevoApiKey) {
-            console.log('BREVO_API_KEY detected. Using Brevo API email fallback.');
-        }
         return;
     }
 
@@ -99,9 +105,6 @@ const verifyEmailTransport = async () => {
         console.log(`SMTP ready (${smtpHost}:${smtpPort})`);
     } catch (error) {
         console.error('SMTP verify failed:', error.message);
-        if (brevoApiKey) {
-            console.log('Will use Brevo API fallback for outgoing emails.');
-        }
     }
 };
 
