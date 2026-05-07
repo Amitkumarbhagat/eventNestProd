@@ -1,7 +1,7 @@
-const nodemailer = require('nodemailer');
-const dotenv = require('dotenv');
+// const nodemailer = require('nodemailer');
+// const dotenv = require('dotenv');
 
-dotenv.config();
+// dotenv.config();
 
 // const transporter = nodemailer.createTransport({
 //     service: 'gmail',
@@ -12,19 +12,30 @@ dotenv.config();
 // });
 
 
+const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
+const dns = require('dns');
+
+dotenv.config();
+
+dns.setDefaultResultOrder('ipv4first');
+
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     family: 4,
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS
     },
     tls: {
         rejectUnauthorized: false
     }
 });
+
+
+
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
